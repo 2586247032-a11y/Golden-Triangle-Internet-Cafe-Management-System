@@ -57,9 +57,9 @@ async function handleLogin() {
     await authStore.login(form.login, form.password)
     ElMessage.success('登录成功')
     const redirect = route.query.redirect
-    if (redirect) { router.push(redirect); return }
-    if (authStore.isMember) { router.push('/member/home'); return }
-    router.push('/counter')
+    const target = redirect || (authStore.isMember ? '/member/home' : '/counter')
+    // 使用 window.location 强制完整加载，确保 token 在后续请求中正确携带
+    window.location.href = target
   } catch (e) {
     loading.value = false
   }

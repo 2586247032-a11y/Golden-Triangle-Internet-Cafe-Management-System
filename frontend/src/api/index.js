@@ -29,7 +29,10 @@ api.interceptors.response.use(
     if (status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      router.push('/login')
+      // 防止循环重定向：不在登录页时再跳转
+      if (window.location.pathname !== '/login') {
+        router.push('/login')
+      }
       ElMessage.error('登录已过期，请重新登录')
     } else if (status === 403) {
       ElMessage.error('权限不足')
