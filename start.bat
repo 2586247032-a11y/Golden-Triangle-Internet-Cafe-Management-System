@@ -59,6 +59,6 @@ echo   管理员: admin / 123456
 echo   按 Ctrl+C 停止服务
 echo ============================================
 echo.
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 
 pause

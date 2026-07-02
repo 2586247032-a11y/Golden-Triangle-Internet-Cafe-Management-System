@@ -1,9 +1,9 @@
-"""认证服务 — 支持操作员和会员双通道登录"""
+"""认证服务 — 支持操作员和会员双通道登录，JWT 无状态 token"""
 
 import bcrypt
 from dao.member_dao import get_member_by_phone
 from dao.operator_dao import get_operator_by_login
-from dao.auth_dao import generate_token, store_token, validate_token, remove_token
+from dao.auth_dao import generate_token, validate_token, remove_token
 
 
 def hash_password(password: str) -> str:
@@ -15,21 +15,18 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def login(login_name: str, password: str) -> dict:
-    """
-    登录认证：优先查 OPERATOR 表（管理人员），再查 MEMBER 表（顾客）
-    """
+    """登录认证：优先查 OPERATOR 表（管理人员），再查 MEMBER 表（顾客）"""
     # 1. 尝试操作员登录
     operator = get_operator_by_login(login_name)
     if operator and verify_password(password, operator["password_hash"]):
         role = operator["role"]
-        token = generate_token()
-        store_token(token, operator["operator_id"], role)
+        token = generate_token(operator["operator_id"], role)
         return {
             "token": token,
             "user_id": operator["operator_id"],
             "name": operator["name"],
             "login_name": operator["login_name"],
-            "role": role,  # super_admin / cashier
+            "role": role,
         }
 
     # 2. 尝试会员登录
@@ -38,8 +35,7 @@ def login(login_name: str, password: str) -> dict:
         if not member["is_active"]:
             raise ValueError("账号已停用")
         role = "member"
-        token = generate_token()
-        store_token(token, member["member_id"], role)
+        token = generate_token(member["member_id"], role)
         return {
             "token": token,
             "user_id": member["member_id"],
